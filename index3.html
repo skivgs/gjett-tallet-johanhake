@@ -20,15 +20,19 @@
             height: 4em;
         }
 
-        #btnRestart{
+        #skjemaGjett{
             display:none;
+        }
+
+        #skjemaRestart{
+            display:block;
         }
 
     </style>
     <title>Gjett et tall</title>
 </head>
 <body>
-    <header><h1>Gjett et tall</h1></header>
+    <header><h1>Gjett et tall (IKKE FERDIG!!)</h1></header>
     <nav>
         <a class="button" href="index.html">Besvarelse 1-4</a>
         <a class="button" href="index2.html">Besvarelse 5, 6</a>
@@ -36,9 +40,9 @@
     </nav>
     <main>
         <article>
-            <p>Tallet ligger mellom <span id="txtMin">1</span> og <span id="txtMax">10</span></p>
-            <p>Du har brukt <span id="txtAntallGjetninger">0</span> antall gjetninger</p>
-            <form action="" onsubmit="gjett(event)">
+            <form id="skjemaGjett" action="" onsubmit="gjett(event)">
+                <p>Tallet ligger mellom <span id="txtMin">1</span> og <span id="txtMax">10</span></p>
+                <p>Du har brukt <span id="txtAntallGjetninger">0</span> antall gjetninger</p>
                 <label for="inpGjetting">Gjett et tall</label>
                 <input id="inpGjetting"
                        placeholder="gjett..."
@@ -48,10 +52,18 @@
                        required>
             </form>
             <p id="txtBeskjed"></p>
-            <button id="btnRestart" class="button" onclick="restart()">
+            <form id="skjemaRestart" action="" onsubmit="restart(event)">
+                <label for="inpMin">Minimum verdi</label>
+                <input id="inpMin" type="number" min="1" value="1" required>
+                <label for="inpMax">Maksimum verdi</label>
+                <input id="inpMax" type="number" max="1000" value="10" required>
+            <button id="btnRestart" class="button">
                 Restart oppgaven
             </button>
+            </form>
         </article>
+        <audio id="lydFeil" src="lyder/feil.mp3"></audio>
+        <audio id="lydRiktig" src="lyder/riktig.mp3"></audio>
     </main>
 <footer>
     Gjett et tall er lagd av <i>Johan Hake</i>
@@ -61,10 +73,15 @@
         // Få tak på HTML-objekter
         var inpGjetting = document.getElementById("inpGjetting");
         var txtBeskjed = document.getElementById("txtBeskjed");
-        var btnRestart = document.getElementById("btnRestart");
+        var skjemaGjett = document.getElementById("skjemaGjett");
+        var skjemaRestart = document.getElementById("skjemaRestart");
         var txtMin = document.getElementById("txtMin");
         var txtMax = document.getElementById("txtMax");
         var txtAntallGjetninger = document.getElementById("txtAntallGjetninger");
+        var inpMin = document.getElementById("inpMin");
+        var inpMax = document.getElementById("inpMax");
+        var lydFeil = document.getElementById("lydFeil");
+        var lydRiktig = document.getElementById("lydRiktig");
 
         // Variabler som brukes i applikasjonen
         var korrektTall, min, max, antallGjetninger;
@@ -78,6 +95,8 @@
             inpGjetting.value = "";
             antallGjetninger++;
 
+            console.log("gjettet:", gjettetTall, "korrekt:", korrektTall);
+
             // Sjekker om tallet er riktig
             if (gjettetTall === korrektTall) {
                 korrekt();
@@ -86,11 +105,13 @@
                 min =  gjettetTall+1;
                 txtMin.innerHTML = min;
                 inpGjetting.min = min;
+                lydFeil.play();
             } else {
                 txtBeskjed.innerHTML = `<b>Arghhhhh...</b> Du gjettet <i>${gjettetTall}</i>  og det er for mye!`;
                 max =  gjettetTall-1;
                 txtMax.innerHTML = max;
                 inpGjetting.max = max;
+                lydFeil.play();
             }
 
             // Sjekker om min er lik max for da har vi funnet tallet!
@@ -103,27 +124,30 @@
             txtAntallGjetninger.innerHTML = antallGjetninger;
         }
 
-        // Lager et nytt tilfeldig tall
-        function restart(){
+        // Restart lytterfunksjon
+        function restart(event) {
+            event.preventDefault();
+
+            // Resetter verdier for et nytt spill
             antallGjetninger = 0;
-            min = 1;
-            max = 10;
+            min = Number(inpMin.value);
+            max = Number(inpMax.value);;
             korrektTall = Math.floor(Math.random()*(max-min+1)) + min;
             txtMin.innerHTML = min;
             txtMax.innerHTML = max;
-            inpGjetting.style.display = "block";
-            btnRestart.style.display = "display";
+            inpGjetting.min = min;
+            inpGjetting.max = max;
+            skjemaGjett.style.display = "block";
+            skjemaRestart.style.display = "none";
         }
 
         // Funksjon vi bruker for å gi beskjed om korrekt gjetning
         function korrekt(){
-            txtBeskjed.innerHTML = `<b>Du gjettet riktig! Tallet er ${korrektTall}</b>`;
-            inpGjetting.style.display = "none";
-            btnRestart.style.display = "block";
+            lydRiktig.play();
+            txtBeskjed.innerHTML = `<b>Du gjettet riktig! Tallet er ${korrektTall} og du brukte ${antallGjetninger} antall gjetninger.</b>`;
+            skjemaGjett.style.display = "none";
+            skjemaRestart.style.display = "block";
         }
-
-        // Lager et nytt tilfeldig tall
-        restart();
 
     </script>
 </body>
