@@ -16,10 +16,6 @@
             flex: 1;
         }
 
-        #txtBeskjed {
-            height: 4em;
-        }
-
         #skjemaGjett{
             display:none;
         }
@@ -28,11 +24,42 @@
             display:block;
         }
 
+        #animasjon {
+            display: flex;
+            border-bottom: black 2px solid;
+        }
+
+        #venstre {
+            flex: 1 0 10px;
+            text-align: right;
+            transition: all 1s;
+            border-right: black 2px solid;
+            background-color: red;
+        }
+
+        #igjen {
+            flex: 10 0 10px;
+            transition: all 1s;
+            background-color: green;
+        }
+
+        #hoeyre {
+            flex: 1 0 10px;
+            text-align: left;
+            transition: all 1s;
+            border-left: black 2px solid;
+            background-color: red;
+        }
+
+        #response {
+            display: none;
+        }
+
     </style>
     <title>Gjett et tall</title>
 </head>
 <body>
-    <header><h1>Gjett et tall (IKKE FERDIG!!)</h1></header>
+    <header><h1>Gjett et tall</h1></header>
     <nav>
         <a class="button" href="index.html">Besvarelse 1-4</a>
         <a class="button" href="index2.html">Besvarelse 5, 6</a>
@@ -41,8 +68,7 @@
     <main>
         <article>
             <form id="skjemaGjett" action="" onsubmit="gjett(event)">
-                <p>Tallet ligger mellom <span id="txtMin">1</span> og <span id="txtMax">10</span></p>
-                <p>Du har brukt <span id="txtAntallGjetninger">0</span> antall gjetninger</p>
+                <p>Du har brukt <span id="txtAntallGjetninger">0</span> gjetninger</p>
                 <label for="inpGjetting">Gjett et tall</label>
                 <input id="inpGjetting"
                        placeholder="gjett..."
@@ -51,7 +77,9 @@
                        max="10"
                        required>
             </form>
-            <p id="txtBeskjed"></p>
+            <p id="txtBeskjed">
+                <b>Hva skal være min og maks verdi på tall du skal gjette?</b>
+            </p>
             <form id="skjemaRestart" action="" onsubmit="restart(event)">
                 <label for="inpMin">Minimum verdi</label>
                 <input id="inpMin" type="number" min="1" value="1" required>
@@ -61,6 +89,14 @@
                 Restart oppgaven
             </button>
             </form>
+            <div id="response">
+                <p>Tallet ligger mellom</p>
+                <div id="animasjon">
+                    <div id="venstre">1</div>
+                    <div id="igjen"></div>
+                    <div id="hoeyre">10</div>
+                </div>
+            </div>
         </article>
         <audio id="lydFeil" src="lyder/feil.mp3"></audio>
         <audio id="lydRiktig" src="lyder/riktig.mp3"></audio>
@@ -71,27 +107,29 @@
     <script>
 
         // Få tak på HTML-objekter
-        var inpGjetting = document.getElementById("inpGjetting");
-        var txtBeskjed = document.getElementById("txtBeskjed");
-        var skjemaGjett = document.getElementById("skjemaGjett");
-        var skjemaRestart = document.getElementById("skjemaRestart");
-        var txtMin = document.getElementById("txtMin");
-        var txtMax = document.getElementById("txtMax");
-        var txtAntallGjetninger = document.getElementById("txtAntallGjetninger");
-        var inpMin = document.getElementById("inpMin");
-        var inpMax = document.getElementById("inpMax");
-        var lydFeil = document.getElementById("lydFeil");
-        var lydRiktig = document.getElementById("lydRiktig");
+        let inpGjetting = document.getElementById("inpGjetting");
+        let txtBeskjed = document.getElementById("txtBeskjed");
+        let skjemaGjett = document.getElementById("skjemaGjett");
+        let skjemaRestart = document.getElementById("skjemaRestart");
+        let txtAntallGjetninger = document.getElementById("txtAntallGjetninger");
+        let inpMin = document.getElementById("inpMin");
+        let inpMax = document.getElementById("inpMax");
+        let lydFeil = document.getElementById("lydFeil");
+        let lydRiktig = document.getElementById("lydRiktig");
+        let venstre = document.getElementById("venstre");
+        let igjen = document.getElementById("igjen");
+        let hoeyre = document.getElementById("hoeyre");
+        let response = document.getElementById("response");
 
         // Variabler som brukes i applikasjonen
-        var korrektTall, min, max, antallGjetninger;
+        let korrektTall, orgMin, orgMax, orgBredde, min, max, antallGjetninger;
 
         // Lytterfunksjon som kalles når noen har gjort en gjetning.
         function gjett(event){
             event.preventDefault();
 
             // Henter ut tallet brukeren har gjettet og gjør om det til et tall
-            var gjettetTall = Number(inpGjetting.value);
+            let gjettetTall = Number(inpGjetting.value);
             inpGjetting.value = "";
             antallGjetninger++;
 
@@ -100,23 +138,32 @@
             // Sjekker om tallet er riktig
             if (gjettetTall === korrektTall) {
                 korrekt();
+
+            // Skjekk om tallet er mindre enn korrekt tall
             } else if (gjettetTall < korrektTall){
                 txtBeskjed.innerHTML = `<b>Arghhhhh...</b> Du gjettet <i>${gjettetTall}</i> og det er for lite!`;
-                min =  gjettetTall+1;
-                txtMin.innerHTML = min;
+                min = gjettetTall+1;
                 inpGjetting.min = min;
+                venstre.innerHTML = min;
+                venstre.style.flexGrow = 1 + 10*(min-orgMin)/orgBredde;
+                igjen.style.flexGrow = 10*(max-min)/orgBredde;
                 lydFeil.play();
+
+
+            // Tallet er større enn korrekt tall
             } else {
                 txtBeskjed.innerHTML = `<b>Arghhhhh...</b> Du gjettet <i>${gjettetTall}</i>  og det er for mye!`;
                 max =  gjettetTall-1;
-                txtMax.innerHTML = max;
                 inpGjetting.max = max;
+                hoeyre.innerHTML = max;
+                hoeyre.style.flexGrow = 1 + 10*(orgMax-max)/orgBredde;
+                igjen.style.flexGrow =10*(max-min)/orgBredde;
                 lydFeil.play();
             }
 
             // Sjekker om min er lik max for da har vi funnet tallet!
             if (min === max) {
-                antallGjetninger++
+                antallGjetninger++;
                 korrekt()
             }
 
@@ -128,25 +175,43 @@
         function restart(event) {
             event.preventDefault();
 
+            txtBeskjed.innerHTML = "";
+
             // Resetter verdier for et nytt spill
             antallGjetninger = 0;
-            min = Number(inpMin.value);
-            max = Number(inpMax.value);;
+
+            // Leser av min og max fra skjema
+            orgMin = min = Number(inpMin.value);
+            orgMax = max = Number(inpMax.value);
+            orgBredde = max-min;
+
+            // Lager et nytt tilfeldig tall
             korrektTall = Math.floor(Math.random()*(max-min+1)) + min;
-            txtMin.innerHTML = min;
-            txtMax.innerHTML = max;
+
+            // Oppdaterer elementer for min og max
             inpGjetting.min = min;
             inpGjetting.max = max;
             skjemaGjett.style.display = "block";
             skjemaRestart.style.display = "none";
+            venstre.innerHTML = min;
+            hoeyre.innerHTML = max;
+
+            // Resetter animasjonen
+            response.style.display = "block";
+            venstre.innerHTML = orgMin
+            venstre.style.flexGrow = 1;
+            igjen.style.flexGrow = 10;
+            hoeyre.style.flexGrow = 1;
+            hoeyre.innerHTML = orgMax
         }
 
         // Funksjon vi bruker for å gi beskjed om korrekt gjetning
         function korrekt(){
             lydRiktig.play();
-            txtBeskjed.innerHTML = `<b>Du gjettet riktig! Tallet er ${korrektTall} og du brukte ${antallGjetninger} antall gjetninger.</b>`;
+            txtBeskjed.innerHTML = `<b>Du gjettet riktig! Tallet er ${korrektTall} og du brukte ${antallGjetninger} gjetninger.</b>`;
             skjemaGjett.style.display = "none";
             skjemaRestart.style.display = "block";
+            response.style.display = "none";
         }
 
     </script>
